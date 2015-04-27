@@ -339,9 +339,8 @@ Loop, Parse, MasterList, |
 GuiControl,, TemplateList, % "|" Trim(List, "|")
 return
 
-esc::
-Gdip_ShutDown(pToken)
 GuiClose:
+Gdip_ShutDown(pToken)
 ExitApp
 
 
