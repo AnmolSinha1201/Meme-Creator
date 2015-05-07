@@ -339,7 +339,7 @@ if(BottomText)
 	StringSplit, ReturnRC, ReturnRC, |
 	
 	CreateRectF(RectF, 0, (nHeight-ReturnRC4), nWidth, nHeight)
-	ToolTip, % DllCall("Gdiplus\GdipAddPathString", "Ptr", Path, "WStr", BottomText, "Int", -1, "Ptr", FontFamily
+	DllCall("Gdiplus\GdipAddPathString", "Ptr", Path, "WStr", BottomText, "Int", -1, "Ptr", FontFamily
                                              , "Int", Style, "Float", Size, "Ptr", &RectF, "Ptr", hFormat)
 	pPen2 := Gdip_CreatePen(0xFF000000, 4)
 	DllCall("gdiplus\GdipSetPenLineJoin", "Uint", pPen2, "uInt", 2)
