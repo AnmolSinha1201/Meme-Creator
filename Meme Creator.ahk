@@ -1,4 +1,5 @@
-﻿#Include, gdip.ahk
+﻿#NoEnv
+#Include, gdip.ahk
 
 pToken := Gdip_Startup()
 InitFile := "init.ini"
@@ -264,8 +265,33 @@ if(TopText)
 		Gdip_DeleteStringFormat(hFormat)   
 		Gdip_DeleteFont(hFont)
 		Gdip_DeleteFontFamily(hFamily)
+		
+		
 	}
-	Gdip_TextToGraphics(G, TopText, "x0 y0 Center c" SubStr(TextColor, 3) " Bold s" . ((AutoSizeCaption)?(nHeight*ThisMultiplier):TopTextSize), "Arial", nWidth, nHeight)
+	
+	
+	
+	Path := Gdip_CreatePath()
+	FontFamily := Gdip_FontFamilyCreate("Arial")
+
+	hFormat := Gdip_StringFormatCreate(0x4000) ;StringFormatFlagsNoClip
+	Gdip_SetStringFormatAlign(hFormat, 1) ; Center = 1
+	Gdip_SetTextRenderingHint(G, 4) ; AntiAlias = 4
+	
+	Style := 1 ; FontStyleBold
+	Size := Round((AutoSizeCaption)?(nHeight*ThisMultiplier):TopTextSize)
+	CreateRectF(RectF, 0, 0, nWidth, nHeight)
+	DllCall("Gdiplus\GdipAddPathString", "Ptr", Path, "WStr", TopText, "Int", -1, "Ptr", FontFamily
+                                             , "Int", Style, "Float", Size, "Ptr", &RectF, "Ptr", hFormat)
+	pPen2 := Gdip_CreatePen(0xFF000000, 4)
+	DllCall("gdiplus\GdipSetPenLineJoin", "Uint", pPen2, "uInt", 2)
+	DllCall("gdiplus\GdipDrawPath", "UInt", G, "UInt", pPen2, "UInt", Path)
+	Gdip_TextToGraphics(G, TopText, "x0 y0 Center c" SubStr(TextColor, 3) " Bold s" . Size, "Arial", nWidth, nHeight)
+	
+	Gdip_DeletePen(pPen2)
+	Gdip_DeleteStringFormat(hFormat)
+	Gdip_DeleteFontFamily(FontFamily)
+	Gdip_DeletePath(Path)
 }
 if(BottomText)
 {
@@ -294,9 +320,37 @@ if(BottomText)
 		Gdip_DeleteStringFormat(hFormat)   
 		Gdip_DeleteFont(hFont)
 		Gdip_DeleteFontFamily(hFamily)
+		Gdip_DeletePath(Path)
 	}
-	ToolTip, % SubStr(TextColor, 3)
-	Gdip_TextToGraphics(G, BottomText, "x0 y0 c" SubStr(TextColor, 3) " Center Bold bottom s" . ((AutoSizeCaption)?(nHeight*ThisMultiplier2):BottomTextSize), "Arial", nWidth, nHeight)
+	
+	Path := Gdip_CreatePath()
+	FontFamily := Gdip_FontFamilyCreate("Arial")
+
+	hFormat := Gdip_StringFormatCreate(0x4000) ;StringFormatFlagsNoClip
+	Gdip_SetStringFormatAlign(hFormat, 1) ; Center = 1
+	Gdip_SetTextRenderingHint(G, 4) ; AntiAlias = 4
+	
+	Style := 1 ; FontStyleBold
+	Size := Round((AutoSizeCaption)?(nHeight*ThisMultiplier2):BottomTextSize)
+	
+	hFont := Gdip_FontCreate(hFamily, Size, 1)
+	CreateRectF(RC, 0, 0, nWidth, nHeight)
+	ReturnRC := Gdip_MeasureString(G, BottomText, hFont, hFormat, RC)
+	StringSplit, ReturnRC, ReturnRC, |
+	
+	CreateRectF(RectF, 0, (nHeight-ReturnRC4), nWidth, nHeight)
+	ToolTip, % DllCall("Gdiplus\GdipAddPathString", "Ptr", Path, "WStr", BottomText, "Int", -1, "Ptr", FontFamily
+                                             , "Int", Style, "Float", Size, "Ptr", &RectF, "Ptr", hFormat)
+	pPen2 := Gdip_CreatePen(0xFF000000, 4)
+	DllCall("gdiplus\GdipSetPenLineJoin", "Uint", pPen2, "uInt", 2)
+	DllCall("gdiplus\GdipDrawPath", "UInt", G, "UInt", pPen2, "UInt", Path)
+	
+	Gdip_TextToGraphics(G, BottomText, "x0 y0 c" SubStr(TextColor, 3) " Center Bold bottom s" . Size, "Arial", nWidth, nHeight)
+	
+	Gdip_DeletePen(pPen2)
+	Gdip_DeleteFont(hFont)
+	Gdip_DeleteStringFormat(hFormat)
+	Gdip_DeleteFontFamily(FontFamily)
 }
 
 hBitmap := Gdip_CreateHBITMAPFromBitmap(pBitmap2 := CreateCentralFrame(Rescale(pBitmap, 500, 290, 0), 500, 290, ViewBackdrop?BackdropColor:0))
